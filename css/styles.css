@@ -10,6 +10,16 @@
  * Copyright 2011-2022 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
+ @font-face {
+  font-family: Blender Pro;
+  src: url(../assets/fonts/BlenderPro-Bold.ttf);
+ }
+
+@font-face {
+  font-family: Blender Pro Thin;
+  font-size: 1.25rem;
+  src: url(../assets/fonts/BlenderPro-Thin.ttf);
+}
 :root {
   --bs-blue: #0d6efd;
   --bs-indigo: #6610f2;
@@ -125,7 +135,7 @@ body {
     padding-top: 25px; /* More space for mobile/collapsed nav */
     height: 100%;
     min-height: 100%;
-    font-family: 'Times New Roman', Times, serif
+    font-family: 'Blender Pro Thin', sans-serif;
   }
 }
 
@@ -135,14 +145,13 @@ hr {
   border: 0;
   border-top: 0.125rem solid;
   opacity: 0.25;
-  font-family:'Times New Roman', Times, serif
+  font-family:'Blender Pro', sans-serif;
 }
 
 h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
   margin-top: 0;
   margin-bottom: 0.5rem;
-  font-family: "montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  font-weight: 100;
+  font-family: "Blender Pro Thin", sans-serif;
   line-height: 1.2;
   height: 100%;
   min-height: 100%;
@@ -156,6 +165,7 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
 
 h1, .h1 {
   font-size: calc(1.375rem + 1.5vw);
+  font-family:'Blender Pro', sans-serif;
 }
 @media (min-width: 1200px) {
   h1, .h1 {
@@ -182,11 +192,11 @@ h3, .h3 {
 }
 
 h4, .h4 {
-  font-size: calc(1.275rem + 0.3vw);
+  font-size: calc(1.275rem + 0.5vw);
 }
 @media (min-width: 1200px) {
   h4, .h4 {
-    font-size: 1rem;
+    font-size: 1.25rem;
   }
 }
 
@@ -251,7 +261,7 @@ blockquote {
 
 b,
 strong {
-  font-weight: bolder;
+  font-weight: 1000rem;
 }
 
 small, .small {
@@ -523,6 +533,7 @@ progress {
 
 .lead {
   font-size: 1.25rem;
+  font-family: 'Blender Pro Thin' sans-serif;
   font-weight: 300;
 }
 
@@ -10928,8 +10939,9 @@ html {
 #mainNav {
   padding-top: 1rem;
   padding-bottom: 1rem;
-  font-family: 'Times New Roman', Times, serif
+  font-family: 'Blender Pro', sans-serif;
   font-weight: 700;
+  font-size: 1.25rem;
 }
 #mainNav .navbar-brand {
   color: #fff;
@@ -11004,6 +11016,7 @@ html {
 .masthead {
   padding-top: calc(6rem + 74px);
   padding-bottom: 6rem;
+  font-family: 'Blender Pro', sans-serif;
 }
 .masthead .masthead-heading {
   font-size: 2.75rem;
