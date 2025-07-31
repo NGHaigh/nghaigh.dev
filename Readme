@@ -1,1 +1,40 @@
+NGHAIGH.ME Portfolio Website V1
 
+Introduction
+-----------------------------------------------------------------------------------
+-Welcome to my portfolio website readme. This website was created to showcase the different projects I have created over the last few years.
+
+Site Address
+-----------------------------------------------------------------------------------
+Link[nghaigh.me](https://nghaigh.me)
+
+Build Tools
+-----------------------------------------------------------------------------------
+- HTML5/CSS3/Javascript
+- Hosted On Github Pages
+- Domain aquired from Namecheap
+
+
+Features
+-----------------------------------------------------------------------------------
+-Portfolio Showcase with links to corresponding pages
+-Contact information
+-Social Links
+-Phone compatability
+-Adaptive Navbar
+
+How to run locally
+-----------------------------------------------------------------------------------
+To run locally you need to do the following
+	-Install Visual Studio Code
+	-Clone the repository onto device
+	-Install liveserver extension onto Visual Studio Code
+	-Open the project in Visual Studio Code and open it in a live server (Right Click Option)
+
+References
+-----------------------------------------------------------------------------------
+Intial Template Used: https://startbootstrap.com/theme/freelancer
+
+Font: https://en.bestfonts.pro/font/blender-pro
+
+Icons: https://fontawesome.com
