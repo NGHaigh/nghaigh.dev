@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Desktop Portfolio - Test</title>
+<style>
+  :root{
+    --desktop-teal: #008080;
+    --win-grey: #c0c0c0;
+    --win-grey-dark: #808080;
+    --win-grey-light: #ffffff;
+    --title-blue-1: #000080;
+    --title-blue-2: #1084d0;
+    --text-dark: #000000;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0; height:100%;
+    font-family: "Tahoma", "Segoe UI", "MS Sans Serif", sans-serif;
+    -webkit-user-select:none; user-select:none;
+    overflow:hidden;
+  }
+
+  #desktop{
+    position:relative;
+    width:100vw; height:100vh;
+    background: var(--desktop-teal);
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.04) 0, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,0.05) 0, transparent 45%);
+  }
+
+  /* ---------- ICONS ---------- */
+  .icon{
+    position:absolute;
+    width:138px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    padding:6px 4px;
+    cursor:grab;
+    touch-action:none;
+    transition: left 0.12s ease, top 0.12s ease;
+  }
+  .icon.dragging{
+    transition: none;
+    z-index: 999;
+  }
+  .icon:active{ cursor:grabbing; }
+  .icon.selected .icon-glyph{
+    filter: brightness(0.75) saturate(1.4);
+  }
+  .icon.selected .icon-label{
+    background: var(--title-blue-1);
+    color:#fff;
+  }
+  .icon-glyph{
+    width:40px; height:40px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:60px;
+    filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.4));
+    pointer-events:none;
+  }
+  .icon-label{
+    font-size:14px;
+    color:#fff;
+    text-align:center;
+    line-height:1.25;
+    padding:1px 8px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.85);
+    pointer-events:none;
+    max-width:80px;
+    word-wrap:break-word;
+  } 
+  .icon:hover
+  {
+    background: rgba(4, 19, 153, 0.18);
+  }
+  .icon.selected:hover
+  {
+    background: var(--title-blue-1);
+  }
+
+
+  /* ---------- WINDOWS ---------- */
+  .window{
+    position:absolute;
+    min-width:260px;
+    min-height:160px;
+    background: var(--win-grey);
+    border: 2px solid var(--win-grey-light);
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    display:flex;
+    flex-direction:column;
+  }
+  .window.active{ z-index:50; }
+
+  .titlebar{
+    height:26px;
+    flex-shrink:0;
+    background: linear-gradient(90deg, var(--title-blue-1), var(--title-blue-2));
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 3px 0 6px;
+    cursor:move;
+  }
+  .window:not(.active) .titlebar{
+    background: linear-gradient(90deg, #808080, #b5b5b5);
+  }
+  .titlebar-title{
+    color:#fff;
+    font-size:13px;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    pointer-events:none;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+  }
+  .titlebar-controls{ display:flex; gap:3px; }
+  .win-btn{
+    width:18px; height:16px;
+    background: var(--win-grey);
+    border: 1px solid var(--win-grey-light);
+    border-right-color:#404040;
+    border-bottom-color:#404040;
+    font-size:11px;
+    line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    font-weight:bold;
+  }
+  .win-btn:active{
+    border-color:#404040;
+    border-right-color: var(--win-grey-light);
+    border-bottom-color: var(--win-grey-light);
+  }
+
+  .window-body{
+    flex:1;
+    margin:3px;
+    background:#fff;
+    border: 1px solid var(--win-grey-dark);
+    padding:12px;
+    overflow:auto;
+    font-size:13px;
+    color:#111;
+    line-height:1.5;
+  }
+  .window-body h2{ margin-top:0; font-size:15px; }
+  .window-body img{ max-width:100%; display:block; margin-top:8px; }
+
+  .resize-handle{
+    position:absolute;
+    width:14px; height:14px;
+    right:0; bottom:0;
+    cursor:nwse-resize;
+  }
+  .window.maximized .resize-handle{ display:none; }
+  .window.maximized .titlebar{ cursor:default; }
+
+  /* ---------- START MENU ---------- */
+  #start-menu{
+    position:absolute;
+    left:4px;
+    bottom:38px;
+    width:190px;
+    background: var(--win-grey);
+    border: 2px solid var(--win-grey-light);
+    border-right-color:#404040;
+    border-bottom-color:#404040;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    display:none;
+    flex-direction:column;
+    padding:3px;
+    z-index:2000;
+  }
+  #start-menu.open{ display:flex; }
+  .start-menu-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 10px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .start-menu-item:hover{
+    background: var(--title-blue-1);
+    color:#fff;
+  }
+  .start-menu-sep{
+    height:1px;
+    background: var(--win-grey-dark);
+    border-bottom:1px solid var(--win-grey-light);
+    margin:3px 2px;
+  }
+  /* ---------- TASKBAR ---------- */
+  #taskbar{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:60px;
+    background: var(--win-grey);
+    border-top:2px solid var(--win-grey-light);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:3px 4px;
+    z-index:1000;
+  }
+  #start-btn{
+    height:60px;
+    padding:10px 20px;
+    background: var(--win-grey);
+    border: 1px solid var(--win-grey-light);
+    border-right-color:#404040;
+    border-bottom-color:#404040;
+    font-weight:bold;
+    font-size:13px;
+    display:flex; align-items:center; gap:0px;
+    cursor:pointer;
+  }
+  #start-btn:active{
+    border-color:#404040;
+    border-right-color: var(--win-grey-light);
+    border-bottom-color: var(--win-grey-light);
+  }
+  #taskbar-items{
+    flex:1;
+    display:flex;
+    gap:4px;
+    height:100%;
+  }
+  .taskbar-item-hover{
+        background: rgba(4, 19, 153, 0.18);
+  }
+  .taskbar-item{
+    min-width:120px;
+    max-width:360px;
+    height:100%;
+    background: var(--win-grey);
+    border: 1px solid var(--win-grey-light);
+    border-right-color:#404040;
+    border-bottom-color:#404040;
+    font-size:12px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:0 6px;
+    cursor:pointer;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .taskbar-item.active{
+    border-color:#404040;
+    border-right-color: var(--win-grey-light);
+    border-bottom-color: var(--win-grey-light);
+    background:#d8d8d8;
+  }
+  #date, #clock{
+    height:22px;
+    padding:10px 10px;
+    border:0px solid var(--win-grey-dark);
+    background:var(--win-grey);
+    display:flex; align-items:center;
+    justify-content:center;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+
+<div id="desktop"></div>
+
+<div id="taskbar">
+  <div id="start-btn">🪟 Start</div>
+  <div id="taskbar-items"></div>
+  <div id="date, clock">
+    <div id="clock"></div>
+    <div id="date"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   ICON CONFIG — this is the only part you need to touch to add/test icons.
+
+   Add a new object to the ICONS array below. Each icon needs:
+     id      - unique string, no spaces
+     label   - text shown under the icon
+     glyph   - any emoji or single character to use as the icon graphic
+     x, y    - starting position on the desktop (pixels)
+     content - HTML string shown inside the window when the icon is opened
+     width/height (optional) - starting window size
+
+   Example of adding a new one:
+     {
+       id: "myproject",
+       label: "My New Project",
+       glyph: "🛠️",
+       x: 40, y: 260,
+       content: "<h2>My New Project</h2><p>Description goes here.</p>"
+     }
+========================================================================= */
+const ICONS = [
+  {
+    id: "about",
+    label: "About Me.txt",
+    glyph: "📄",
+    x: 30, y: 30,
+    content: `<h2>About Me</h2><p>Nathan Grey Haigh — Game Developer, Junior Programmer, Junior Designer.</p><p>This window is a placeholder. Swap this content for your real About page text/images.</p>`
+  },
+  {
+    id: "resume",
+    label: "Resume.pdf",
+    glyph: "🗒️",
+    x: 30, y: 150,
+    content: `<h2>Resume</h2><p>Placeholder for your resume — could embed a PDF viewer or a formatted CV here.</p>`
+  },
+  {
+    id: "portfolio",
+    label: "Portfolio",
+    glyph: "📁",
+    x: 30, y: 270,
+    width: 420, height: 320,
+    content: `<h2>Portfolio</h2><p>This folder could open a window listing all projects as its own set of icons — a "folder within the desktop."</p>`
+  },
+  {
+    id: "topdown",
+    label: "Top-Down Game (C++)",
+    glyph: "🎮",
+    x: 140, y: 30,
+    content: `<h2>Top-Down Game Project</h2><p>C++ — University Year 2 (2025) — Games Development.</p>`
+  },
+  {
+    id: "ue5",
+    label: "UE5 Level Design",
+    glyph: "🕹️",
+    x: 140, y: 150,
+    content: `<h2>UE5 Level Design and Mechanics</h2><p>Unreal Engine 5 — University Year 2 (2025) — Games Development.</p>`
+  },
+  {
+    id: "contact",
+    label: "Contact.exe",
+    glyph: "✉️",
+    x: 140, y: 270,
+    content: `<h2>Contact</h2><p>Placeholder contact form or links (email, LinkedIn, GitHub, Instagram).</p>`
+  }
+];
+/* ========================================================================= */
+
+const desktop = document.getElementById('desktop');
+const taskbarItems = document.getElementById('taskbar-items');
+let zCounter = 10;
+const openWindows = {}; // id -> {windowEl, taskbarEl}
+
+/* ---------- GRID SYSTEM (Windows-style icon snapping) ---------- */
+const GRID = {
+  marginLeft: 12,
+  marginTop: 12,
+  cellW: 138,
+  cellH: 144
+};
+
+// map of "col,row" -> icon id, so icons never share a cell
+const occupied = new Map();
+
+function cellKey(col, row){ return col + ',' + row; }
+
+function cellToPixel(col, row){
+  return {
+    x: GRID.marginLeft + col * GRID.cellW,
+    y: GRID.marginTop + row * GRID.cellH
+  };
+}
+
+function pixelToNearestCell(x, y){
+  const col = Math.round((x - GRID.marginLeft) / GRID.cellW);
+  const row = Math.round((y - GRID.marginTop) / GRID.cellH);
+  return { col: Math.max(0, col), row: Math.max(0, row) };
+}
+
+function maxRows(){
+  // leave room for the taskbar
+  return Math.max(1, Math.floor((desktop.clientHeight - 34 - GRID.marginTop) / GRID.cellH));
+}
+
+// Find the closest unoccupied cell to (col,row), searching outward ring by ring.
+// excludeId lets an icon "see" its own current cell as free while it's mid-move.
+function findFreeCell(col, row, excludeId){
+  const rows = maxRows();
+  const isFree = (c, r) => {
+    if(c < 0 || r < 0 || r >= rows) return false;
+    const occupant = occupied.get(cellKey(c, r));
+    return !occupant || occupant === excludeId;
+  };
+
+  if(isFree(col, row)) return { col, row };
+
+  for(let radius = 1; radius < 100; radius++){
+    for(let dc = -radius; dc <= radius; dc++){
+      for(let dr = -radius; dr <= radius; dr++){
+        // only check the ring perimeter, not cells already checked
+        if(Math.max(Math.abs(dc), Math.abs(dr)) !== radius) continue;
+        const c = col + dc, r = row + dr;
+        if(isFree(c, r)) return { col: c, row: r };
+      }
+    }
+  }
+  return { col, row }; // fallback, shouldn't happen in practice
+}
+
+function placeIconOnGrid(iconId, col, row){
+  // free any cell this icon currently holds
+  for(const [key, id] of occupied.entries()){
+    if(id === iconId) occupied.delete(key);
+  }
+  const free = findFreeCell(col, row, iconId);
+  occupied.set(cellKey(free.col, free.row), iconId);
+  return free;
+}
+
+function clampToDesktop(x, y, w, h){
+  const maxX = desktop.clientWidth - w;
+  const maxY = desktop.clientHeight - h - 34; // leave room for taskbar
+  return [Math.max(0, Math.min(x, maxX)), Math.max(0, Math.min(y, maxY))];
+}
+
+function makeDraggable(el, handle, opts){
+  opts = opts || {};
+  let dragging = false, startX, startY, startLeft, startTop, lastLeft, lastTop;
+
+  handle.addEventListener('pointerdown', (e) => {
+    if(e.target.closest('.win-btn')) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    if(opts.onDragStart) opts.onDragStart();
+    const rect = el.getBoundingClientRect();
+    const parentRect = el.parentElement.getBoundingClientRect();
+    startLeft = rect.left - parentRect.left;
+    startTop = rect.top - parentRect.top;
+    lastLeft = startLeft; lastTop = startTop;
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  handle.addEventListener('pointermove', (e) => {
+    if(!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    let newLeft = startLeft + dx;
+    let newTop = startTop + dy;
+    if(opts.onMove) opts.onMove(newLeft, newTop);
+    el.style.left = newLeft + 'px';
+    el.style.top = newTop + 'px';
+    lastLeft = newLeft; lastTop = newTop;
+  });
+
+  handle.addEventListener('pointerup', (e) => {
+    if(!dragging) return;
+    dragging = false;
+    try{ handle.releasePointerCapture(e.pointerId); }catch(err){}
+    if(opts.onDragEnd) opts.onDragEnd(lastLeft, lastTop);
+  });
+}
+
+function createIconEl(cfg){
+  const el = document.createElement('div');
+  el.className = 'icon';
+  el.dataset.id = cfg.id;
+  el.innerHTML = `
+    <div class="icon-glyph">${cfg.glyph}</div>
+    <div class="icon-label">${cfg.label}</div>
+  `;
+  desktop.appendChild(el);
+
+  // snap the icon's requested x/y to the nearest free grid cell on load
+  const desired = pixelToNearestCell(cfg.x, cfg.y);
+  const cell = placeIconOnGrid(cfg.id, desired.col, desired.row);
+  const pos = cellToPixel(cell.col, cell.row);
+  el.style.left = pos.x + 'px';
+  el.style.top = pos.y + 'px';
+
+  makeDraggable(el, el, {
+    onDragStart: () => el.classList.add('dragging'),
+    onDragEnd: (finalX, finalY) => {
+      el.classList.remove('dragging');
+      const target = pixelToNearestCell(finalX, finalY);
+      const cell = placeIconOnGrid(cfg.id, target.col, target.row);
+      const pos = cellToPixel(cell.col, cell.row);
+      el.style.left = pos.x + 'px';
+      el.style.top = pos.y + 'px';
+    }
+  });
+
+  el.addEventListener('click', (e) => {
+    document.querySelectorAll('.icon.selected').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+  });
+
+  el.addEventListener('dblclick', () => openWindow(cfg));
+
+  // basic touch/mobile double-tap support
+  let lastTap = 0;
+  el.addEventListener('touchend', () => {
+    const now = Date.now();
+    if(now - lastTap < 350) openWindow(cfg);
+    lastTap = now;
+  });
+
+  return el;
+}
+
+function openWindow(cfg){
+  if(openWindows[cfg.id]){
+    focusWindow(cfg.id);
+    return;
+  }
+
+  const w = cfg.width || 340;
+  const h = cfg.height || 220;
+  const [x, y] = clampToDesktop(60 + Object.keys(openWindows).length * 24,
+                                 60 + Object.keys(openWindows).length * 24, w, h);
+
+  const win = document.createElement('div');
+  win.className = 'window active';
+  win.style.left = x + 'px';
+  win.style.top = y + 'px';
+  win.style.width = w + 'px';
+  win.style.height = h + 'px';
+  win.style.zIndex = ++zCounter;
+
+  win.innerHTML = `
+    <div class="titlebar">
+      <div class="titlebar-title">${cfg.glyph} ${cfg.label}</div>
+      <div class="titlebar-controls">
+        <div class="win-btn" data-action="min">_</div>
+        <div class="win-btn" data-action="max">□</div>
+        <div class="win-btn" data-action="close">✕</div>
+      </div>
+    </div>
+    <div class="window-body">${cfg.content}</div>
+    <div class="resize-handle"></div>
+  `;
+
+  desktop.appendChild(win);
+
+  const titlebar = win.querySelector('.titlebar');
+  makeDraggable(win, titlebar, {
+    onDragStart: () => { if(win.classList.contains('maximized')) restoreWindow(win); }
+  });
+
+  win.addEventListener('pointerdown', () => focusWindow(cfg.id));
+
+  win.querySelector('[data-action="close"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeWindow(cfg.id);
+  });
+  win.querySelector('[data-action="min"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    win.style.display = 'none';
+  });
+  win.querySelector('[data-action="max"]').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMaximize(win);
+  });
+  titlebar.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    toggleMaximize(win);
+  });
+
+  // resize
+  const resizeHandle = win.querySelector('.resize-handle');
+  let resizing = false, rStartX, rStartY, rStartW, rStartH;
+  resizeHandle.addEventListener('pointerdown', (e) => {
+    resizing = true;
+    rStartX = e.clientX; rStartY = e.clientY;
+    rStartW = win.offsetWidth; rStartH = win.offsetHeight;
+    resizeHandle.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  });
+  resizeHandle.addEventListener('pointermove', (e) => {
+    if(!resizing) return;
+    win.style.width = Math.max(220, rStartW + (e.clientX - rStartX)) + 'px';
+    win.style.height = Math.max(140, rStartH + (e.clientY - rStartY)) + 'px';
+  });
+  resizeHandle.addEventListener('pointerup', (e) => {
+    resizing = false;
+    try{ resizeHandle.releasePointerCapture(e.pointerId); }catch(err){}
+  });
+
+  // taskbar entry
+  const tItem = document.createElement('div');
+  tItem.className = 'taskbar-item active';
+  tItem.textContent = `${cfg.glyph} ${cfg.label}`;
+  tItem.addEventListener('click', () => {
+    if(win.style.display === 'none'){
+      win.style.display = 'flex';
+      focusWindow(cfg.id);
+    } else if (win.style.zIndex == zCounter){
+      win.style.display = 'none';
+    } else {
+      focusWindow(cfg.id);
+    }
+  });
+  taskbarItems.appendChild(tItem);
+
+  openWindows[cfg.id] = { win, tItem };
+  focusWindow(cfg.id);
+}
+
+function toggleMaximize(win){
+  if(win.classList.contains('maximized')){
+    restoreWindow(win);
+  } else {
+    win.dataset.prevLeft = win.style.left;
+    win.dataset.prevTop = win.style.top;
+    win.dataset.prevWidth = win.style.width;
+    win.dataset.prevHeight = win.style.height;
+
+    win.classList.add('maximized');
+    win.style.left = '0px';
+    win.style.top = '0px';
+    win.style.width = desktop.clientWidth + 'px';
+    win.style.height = (desktop.clientHeight - 34) + 'px';
+
+    const maxBtn = win.querySelector('[data-action="max"]');
+    if(maxBtn) maxBtn.textContent = '❐';
+  }
+}
+
+function restoreWindow(win){
+  win.classList.remove('maximized');
+  win.style.left = win.dataset.prevLeft || '60px';
+  win.style.top = win.dataset.prevTop || '60px';
+  win.style.width = win.dataset.prevWidth || '340px';
+  win.style.height = win.dataset.prevHeight || '220px';
+
+  const maxBtn = win.querySelector('[data-action="max"]');
+  if(maxBtn) maxBtn.textContent = '□';
+}
+
+function focusWindow(id){
+  const entry = openWindows[id];
+  if(!entry) return;
+  entry.win.style.display = 'flex';
+  entry.win.style.zIndex = ++zCounter;
+  document.querySelectorAll('.window').forEach(w => w.classList.remove('active'));
+  entry.win.classList.add('active');
+  document.querySelectorAll('.taskbar-item').forEach(t => t.classList.remove('active'));
+  entry.tItem.classList.add('active');
+}
+
+function closeWindow(id){
+  const entry = openWindows[id];
+  if(!entry) return;
+  entry.win.remove();
+  entry.tItem.remove();
+  delete openWindows[id];
+}
+
+// build icons
+ICONS.forEach(createIconEl);
+
+// deselect icons when clicking empty desktop
+desktop.addEventListener('click', (e) => {
+  if(e.target === desktop){
+    document.querySelectorAll('.icon.selected').forEach(i => i.classList.remove('selected'));
+  }
+});
+
+// 24-hour clock
+function updateClock(){
+  const now = new Date();
+  const h = now.getHours().toString().padStart(2,'0');
+  const m = now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}`;
+}
+updateClock();
+setInterval(updateClock, 1000 * 10);
+
+
+// numeric date display
+function updateDate(){
+  const now = new Date();
+  const d = now.getDate().toString().padStart(2,'0');
+  const m = (now.getMonth()+1).toString().padStart(2,'0');
+  const y = now.getFullYear();
+  document.getElementById('date').textContent = `${m}/${d}/${y}`;
+}
+updateDate();
+
+/* ---------- START MENU ---------- */
+const startBtn = document.getElementById('start-btn');
+const startMenu = document.getElementById('start-menu');
+
+startBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  startMenu.classList.toggle('open');
+});
+
+document.addEventListener('click', () => startMenu.classList.remove('open'));
+startMenu.addEventListener('click', (e) => e.stopPropagation());
+</script>
+
+</body>
+</html>
